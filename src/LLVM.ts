@@ -14,6 +14,15 @@ function dirExists(p: string) {
   }
 }
 
+function pathExists(p: string) {
+  try {
+    statSync(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export class LLVM implements IToolchain {
   id: string;
   arch: string;
@@ -22,12 +31,16 @@ export class LLVM implements IToolchain {
     this.target = target;
     this.arch = target.split('-')[0];
 
-    const sysrootsDir = process.platform === 'win32'
-      ? join(homedir(), 'AppData', 'Local', 'smake', 'sysroots')
-      : join(homedir(), '.smake', 'sysroots');
+    const sysrootsDir =
+      process.platform === 'win32'
+        ? join(homedir(), 'AppData', 'Local', 'smake', 'sysroots')
+        : join(homedir(), '.smake', 'sysroots');
     if (this.target.includes('windows-msvc')) {
       const dirname = this.getMsvcLibDirname();
-      if (!process.env.SMAKE_LLVM_MSVC_PATH || !dirExists(join(process.env.SMAKE_LLVM_MSVC_PATH, 'lib', dirname))) {
+      if (
+        !process.env.SMAKE_LLVM_MSVC_PATH ||
+        !dirExists(join(process.env.SMAKE_LLVM_MSVC_PATH, 'lib', dirname))
+      ) {
         if (dirExists(join(sysrootsDir, 'msvc', 'vc', 'lib', dirname))) {
           const info = require(join(sysrootsDir, 'msvc', 'info.json'));
           this.MSVC_VERSION = info._MSC_VER;
@@ -39,12 +52,12 @@ export class LLVM implements IToolchain {
         }
       }
     } else if (this.target.includes('apple')) {
-      if (process.platform !== 'darwin')
-        this.throwError();
+      if (process.platform !== 'darwin') this.throwError();
     } else {
-      const dir = process.env[
-        'SMAKE_LLVM_SYSROOT_' + this.target.toUpperCase().replace(/-/g, '_')
-      ];
+      const dir =
+        process.env[
+          'SMAKE_LLVM_SYSROOT_' + this.target.toUpperCase().replace(/-/g, '_')
+        ];
       if (dir && dirExists(dir)) {
         this.sysroot = dir;
       } else {
@@ -59,14 +72,10 @@ export class LLVM implements IToolchain {
   }
 
   getMsvcLibDirname() {
-    if (this.arch.endsWith('86'))
-      return 'x86';
-    if (this.arch.endsWith('_64'))
-      return 'x64';
-    if (/a.+64/.test(this.arch))
-      return 'arm64';
-    if (this.arch.startsWith('arm'))
-      return 'arm';
+    if (this.arch.endsWith('86')) return 'x86';
+    if (this.arch.endsWith('_64')) return 'x64';
+    if (/a.+64/.test(this.arch)) return 'arm64';
+    if (this.arch.startsWith('arm')) return 'arm';
     return 'unknown-arch';
   }
 
@@ -74,7 +83,7 @@ export class LLVM implements IToolchain {
 
   throwError() {
     this.error = `error: sysroot '${this.target}' not installed`;
-  };
+  }
 
   MSVC_VERSION = process.env.SMAKE_LLVM_MSVC_VERSION;
   MSVC_PATH = process.env.SMAKE_LLVM_MSVC_PATH;
@@ -95,10 +104,8 @@ export class LLVM implements IToolchain {
   protected _optimizeCode!: string;
   get optimizeCode() {
     if (this._optimizeCode === undefined) {
-      if (this.cc === 'clang-cl')
-        this._optimizeCode = '/O2';
-      else
-        this._optimizeCode = '-O3';
+      if (this.cc === 'clang-cl') this._optimizeCode = '/O2';
+      else this._optimizeCode = '-O3';
     }
     return this._optimizeCode;
   }
@@ -154,8 +161,7 @@ export class LLVM implements IToolchain {
   get prefix() {
     if (this._prefix === undefined) {
       if (this.target.includes('apple')) this._prefix = '';
-      else
-        this._prefix = process.env.SMAKE_LLVM_PREFIX || '';
+      else this._prefix = process.env.SMAKE_LLVM_PREFIX || '';
     }
     return this._prefix;
   }
@@ -167,8 +173,7 @@ export class LLVM implements IToolchain {
   get cxx() {
     if (this._cxx === undefined) {
       if (this.target.includes('windows-msvc')) this._cxx = 'clang-cl';
-      else
-        this._cxx = 'clang++';
+      else this._cxx = 'clang++';
     }
     return this._cxx;
   }
@@ -180,8 +185,7 @@ export class LLVM implements IToolchain {
   get cc() {
     if (this._cc === undefined) {
       if (this.target.includes('windows-msvc')) this._cc = 'clang-cl';
-      else
-        this._cc = 'clang';
+      else this._cc = 'clang';
     }
     return this._cc;
   }
@@ -204,8 +208,7 @@ export class LLVM implements IToolchain {
   get ld() {
     if (this._ld === undefined) {
       if (this.target.includes('windows-msvc')) this._ld = 'lld-link';
-      else
-        this._ld = 'clang++';
+      else this._ld = 'clang++';
     }
     return this._ld;
   }
@@ -217,8 +220,7 @@ export class LLVM implements IToolchain {
   get sh() {
     if (this._sh === undefined) {
       if (this.target.includes('windows-msvc')) this._sh = 'lld-link';
-      else
-        this._sh = 'clang++';
+      else this._sh = 'clang++';
     }
     return this._sh;
   }
@@ -302,8 +304,7 @@ export class LLVM implements IToolchain {
           `${this.WINDOWS_KITS_10_PATH}/Lib/${this.WINDOWS_KITS_10_VERSION}/ucrt/${dir}`,
           `${this.WINDOWS_KITS_10_PATH}/Lib/${this.WINDOWS_KITS_10_VERSION}/um/${dir}`,
         ];
-      }
-      else this._linkdirs = dirs;
+      } else this._linkdirs = dirs;
     }
     return this._linkdirs;
   }
@@ -389,9 +390,7 @@ export class LLVM implements IToolchain {
   get ldflags() {
     if (this._ldflags === undefined) {
       if (this.target.includes('apple')) {
-        this._ldflags = [
-          `-target ${this.target}${this.targetPlatformVersion}`,
-        ];
+        this._ldflags = [`-target ${this.target}${this.targetPlatformVersion}`];
         if (this.libs.length)
           this._ldflags.push('-Xlinker -rpath -Xlinker @loader_path');
       } else if (this.target.includes('windows-msvc')) {
@@ -594,7 +593,8 @@ export class LLVM implements IToolchain {
 
   protected _outputFileBasename!: string;
   get outputFileBasename() {
-    if (this._outputFileBasename === undefined) this._outputFileBasename = this.name;
+    if (this._outputFileBasename === undefined)
+      this._outputFileBasename = this.name;
     return this._outputFileBasename;
   }
   set outputFileBasename(v) {
@@ -606,25 +606,22 @@ export class LLVM implements IToolchain {
     if (this._outputFilename === undefined) {
       switch (this.type) {
         case 'executable':
-          this._outputFilename = (
+          this._outputFilename =
             this.executableOutPrefix +
             this.outputFileBasename +
-            this.executableOutSuffix
-          );
+            this.executableOutSuffix;
           break;
         case 'shared':
-          this._outputFilename = (
+          this._outputFilename =
             this.sharedOutPrefix +
             this.outputFileBasename +
-            this.sharedOutSuffix
-          );
+            this.sharedOutSuffix;
           break;
         case 'static':
-          this._outputFilename = (
+          this._outputFilename =
             this.staticOutPrefix +
             this.outputFileBasename +
-            this.staticOutSuffix
-          );
+            this.staticOutSuffix;
           break;
       }
     }
@@ -693,9 +690,9 @@ export class LLVM implements IToolchain {
       return [
         {
           label: red(this.error),
-          command: async () => { }
-        }
-      ]
+          command: async () => {},
+        },
+      ];
     return [
       {
         label: magenta(`Generating build.ninja for ${this.id}`),
@@ -709,7 +706,9 @@ export class LLVM implements IToolchain {
           ];
           switch (this.type) {
             case 'executable':
-              content.push(await this.buildExecutable(opts, outs, this.outputPath));
+              content.push(
+                await this.buildExecutable(opts, outs, this.outputPath)
+              );
               break;
             case 'shared':
               content.push(await this.buildShared(opts, outs, this.outputPath));
@@ -768,7 +767,10 @@ export class LLVM implements IToolchain {
           ...this.includedirs.map((x) => `-I${quote(x)}`),
           ...this.cflags,
           ...this.cxflags,
-        ].join(' ') + (opts.debug ? ` /Zi /Ob0 /Od /RTC1 -${this.msvcCRT}d /DDEBUG` : ` -${this.msvcCRT} ${this.optimizeCode} /DNDEBUG`);
+        ].join(' ') +
+        (opts.debug
+          ? ` /Zi /Ob0 /Od /RTC1 -${this.msvcCRT}d /DDEBUG`
+          : ` -${this.msvcCRT} ${this.optimizeCode} /DNDEBUG`);
       return [
         `rule _CC`,
         '  deps = msvc',
@@ -800,7 +802,10 @@ export class LLVM implements IToolchain {
           ...this.includedirs.map((x) => `-I${quote(x)}`),
           ...this.cxxflags,
           ...this.cxflags,
-        ].join(' ') + (opts.debug ? ` /Zi /Ob0 /Od /RTC1 -${this.msvcCRT}d /DDEBUG` : ` -${this.msvcCRT} ${this.optimizeCode}  /DNDEBUG`);
+        ].join(' ') +
+        (opts.debug
+          ? ` /Zi /Ob0 /Od /RTC1 -${this.msvcCRT}d /DDEBUG`
+          : ` -${this.msvcCRT} ${this.optimizeCode}  /DNDEBUG`);
       return [
         `rule _CXX`,
         '  deps = msvc',
@@ -846,8 +851,9 @@ export class LLVM implements IToolchain {
     const res = this.files.map((f) => {
       const out = join(outDir, f.replace(/\.\./g, '_') + this.objOutSuffix);
       return {
-        cmd: `build ${out}: _${this.isCXXFile(f) ? 'CXX' : this.isASMFile(f) ? 'ASM' : 'CC'
-          } ${f}`,
+        cmd: `build ${out}: _${
+          this.isCXXFile(f) ? 'CXX' : this.isASMFile(f) ? 'ASM' : 'CC'
+        } ${f}`,
         out,
       };
     });
@@ -861,34 +867,36 @@ export class LLVM implements IToolchain {
     if (this.target.includes('windows-msvc'))
       return [
         `rule _LD`,
-        `  command = ${[
-          linker,
-          ...this.linkdirs.map((x) => `/libpath:${quote(x)}`),
-          ...this.libs
-            .filter((x) => x instanceof LLVM)
-            .map((x: any) => `/libpath:${x.outputDir}`),
-          ...this.libs.map(
-            (x) => `${typeof x === 'string' ? x : x.outputFileBasename}.lib`
-          ),
-          ...this.ldflags,
-        ].join(' ') + (opts.debug ? ' /DEBUG' : '')
+        `  command = ${
+          [
+            linker,
+            ...this.linkdirs.map((x) => `/libpath:${quote(x)}`),
+            ...this.libs
+              .filter((x) => x instanceof LLVM)
+              .map((x: any) => `/libpath:${x.outputDir}`),
+            ...this.libs.map(
+              (x) => `${typeof x === 'string' ? x : x.outputFileBasename}.lib`
+            ),
+            ...this.ldflags,
+          ].join(' ') + (opts.debug ? ' /DEBUG' : '')
         } $in /out:$out`,
         '',
         `build ${distFile}: _LD ${objFiles.join(' ')}`,
       ].join('\n');
     return [
       `rule _LD`,
-      `  command = ${[
-        linker,
-        ...this.linkdirs.map((x) => `-L${quote(x)}`),
-        ...this.libs
-          .filter((x) => x instanceof LLVM)
-          .map((x: any) => `-L${x.outputDir}`),
-        ...this.libs.map(
-          (x) => `-l${typeof x === 'string' ? x : x.outputFileBasename}`
-        ),
-        ...this.ldflags,
-      ].join(' ') + (opts.debug ? ' -g' : '')
+      `  command = ${
+        [
+          linker,
+          ...this.linkdirs.map((x) => `-L${quote(x)}`),
+          ...this.libs
+            .filter((x) => x instanceof LLVM)
+            .map((x: any) => `-L${x.outputDir}`),
+          ...this.libs.map(
+            (x) => `-l${typeof x === 'string' ? x : x.outputFileBasename}`
+          ),
+          ...this.ldflags,
+        ].join(' ') + (opts.debug ? ' -g' : '')
       } $in -o $out`,
       '',
       `build ${distFile}: _LD ${objFiles.join(' ')}`,
@@ -900,35 +908,37 @@ export class LLVM implements IToolchain {
     if (this.target.includes('windows-msvc'))
       return [
         `rule _SH`,
-        `  command = ${[
-          linker,
-          ...this.linkdirs.map((x) => `/libpath:${quote(x)}`),
-          ...this.libs
-            .filter((x) => x instanceof LLVM)
-            .map((x: any) => `/libpath:${x.outputDir}`),
-          ...this.libs.map(
-            (x) => `${typeof x === 'string' ? x : x.outputFileBasename}.lib`
-          ),
-          ...this.shflags,
-        ].join(' ') + (opts.debug ? ' /DEBUG' : '')
+        `  command = ${
+          [
+            linker,
+            ...this.linkdirs.map((x) => `/libpath:${quote(x)}`),
+            ...this.libs
+              .filter((x) => x instanceof LLVM)
+              .map((x: any) => `/libpath:${x.outputDir}`),
+            ...this.libs.map(
+              (x) => `${typeof x === 'string' ? x : x.outputFileBasename}.lib`
+            ),
+            ...this.shflags,
+          ].join(' ') + (opts.debug ? ' /DEBUG' : '')
         } $in /out:$out`,
         '',
         `build ${distFile}: _SH ${objFiles.join(' ')}`,
       ].join('\n');
     return [
       `rule _SH`,
-      `  command = ${[
-        linker,
-        ...this.linkdirs.map((x) => `-L${quote(x)}`),
-        ...this.libs
-          .filter((x) => x instanceof LLVM)
-          .map((x: any) => `-L${x.outputDir}`),
-        ...this.libs.map(
-          (x) => `-l${typeof x === 'string' ? x : x.outputFileBasename}`
-        ),
-        ...this.shflags,
-        '-shared',
-      ].join(' ') + (opts.debug ? ' -g' : '')
+      `  command = ${
+        [
+          linker,
+          ...this.linkdirs.map((x) => `-L${quote(x)}`),
+          ...this.libs
+            .filter((x) => x instanceof LLVM)
+            .map((x: any) => `-L${x.outputDir}`),
+          ...this.libs.map(
+            (x) => `-l${typeof x === 'string' ? x : x.outputFileBasename}`
+          ),
+          ...this.shflags,
+          '-shared',
+        ].join(' ') + (opts.debug ? ' -g' : '')
       } $in -o $out`,
       '',
       `build ${distFile}: _SH ${objFiles.join(' ')}`,
@@ -948,14 +958,26 @@ export class LLVM implements IToolchain {
   }
 
   async clean() {
-    console.log(yellow(`rm: ${this.ninjaFilePath}`));
-    rmSync(this.ninjaFilePath, {
-      force: true,
-    });
-    console.log(yellow(`rm: ${this.outputPath}`));
-    rmSync(this.outputPath, {
-      force: true,
-    });
+    if (pathExists(this.ninjaFilePath)) {
+      console.log(yellow(`rm: ${this.ninjaFilePath}`));
+      rmSync(this.ninjaFilePath, {
+        force: true,
+      });
+    }
+    if (pathExists(this.outputPath)) {
+      console.log(yellow(`rm: ${this.outputPath}`));
+      rmSync(this.outputPath, {
+        force: true,
+      });
+    }
+    const outDir = join(this.buildDir, this.cacheDirname);
+    if (pathExists(outDir)) {
+      console.log(yellow(`rm: ${outDir}`));
+      rmSync(outDir, {
+        force: true,
+        recursive: true,
+      });
+    }
 
     if (this.type === 'executable') {
       const llvmLibs = this.libs.filter(
@@ -963,22 +985,46 @@ export class LLVM implements IToolchain {
       ) as LLVM[];
       for (const lib of llvmLibs) {
         const p = join(this.outputDir, lib.outputFilename);
-        console.log(yellow(`rm: ${p}`));
-        rmSync(p, {
-          force: true,
-        });
+        if (pathExists(p)) {
+          console.log(yellow(`rm: ${p}`));
+          rmSync(p, {
+            force: true,
+          });
+        }
       }
     }
 
-    if (this.type === 'shared' && this.target.includes('windows-msvc')) {
-      const p = this.outputPath.replace(
-        new RegExp(this.sharedOutSuffix.replace(/\./g, '\\.') + '$'),
-        '.lib'
-      );
-      console.log(yellow(`rm: ${p}`));
-      rmSync(p, {
-        force: true,
-      });
+    if (this.target.includes('windows-msvc')) {
+      if (this.type === 'executable') {
+        const pdb = this.outputPath.replace(
+          new RegExp(this.executableOutSuffix.replace(/\./g, '\\.') + '$'),
+          '.pdb'
+        );
+        if (pathExists(pdb)) {
+          console.log(yellow(`rm: ${pdb}`));
+          rmSync(pdb, {
+            force: true,
+          });
+        }
+      } else if (this.type === 'shared') {
+        const lib = this.outputPath.replace(
+          new RegExp(this.sharedOutSuffix.replace(/\./g, '\\.') + '$'),
+          '.lib'
+        );
+
+        const pdb = this.outputPath.replace(
+          new RegExp(this.sharedOutSuffix.replace(/\./g, '\\.') + '$'),
+          '.pdb'
+        );
+
+        for (const p of [lib, pdb])
+          if (pathExists(p)) {
+            console.log(yellow(`rm: ${p}`));
+            rmSync(p, {
+              force: true,
+            });
+          }
+      }
     }
   }
 }
