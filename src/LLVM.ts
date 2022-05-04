@@ -1,6 +1,13 @@
 import { execSync } from 'child_process';
 import { cyan, green, magenta, red, yellow } from 'colors/safe';
-import { copyFileSync, mkdirSync, rmSync, statSync, writeFileSync } from 'fs';
+import {
+  copyFileSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'fs';
 import { homedir, join } from '@smake/utils';
 import { quote } from '@smake/utils';
 import { ICommand, IToolchain } from '@smake/utils';
@@ -89,8 +96,6 @@ export class LLVM implements IToolchain {
   MSVC_PATH = process.env.SMAKE_LLVM_MSVC_PATH;
   WINDOWS_KITS_10_PATH = process.env.SMAKE_LLVM_WINDOWS_KITS_10_PATH;
   WINDOWS_KITS_10_VERSION = process.env.SMAKE_LLVM_WINDOWS_KITS_10_VERSION;
-  // useLldLink = false;
-  // lldLinkDebugFlags = process.argv.includes('--debug') ? ' /DEBUG' : '';
 
   protected _msvcCRT!: 'MD' | 'MT';
   get msvcCRT() {
@@ -477,14 +482,6 @@ export class LLVM implements IToolchain {
     this._arobjs = v;
   }
 
-  // protected _debugFlags = process.argv.includes('--debug') ? ' -g' : '';
-  // get debugFlags() {
-  //   return this._debugFlags;
-  // }
-  // set debugFlags(v) {
-  //   this._debugFlags = v;
-  // }
-
   protected _objOutDirname!: string;
   get objOutDirname() {
     if (this._objOutDirname === undefined) this._objOutDirname = 'objs';
@@ -631,9 +628,7 @@ export class LLVM implements IToolchain {
     this._outputFilename = v;
   }
 
-  get debug() {
-    return process.env.mode === 'debug';
-  }
+  private debug = false;
 
   protected _outputDir!: string;
   get outputDir() {
@@ -697,8 +692,11 @@ export class LLVM implements IToolchain {
       {
         label: magenta(`Generating build.ninja for ${this.id}`),
         command: async (opts: any) => {
+          this.debug = opts.debug;
           const { cmd, outs } = await this.buildObjs();
           const content = [
+            '# ' + (this.debug ? 'Debug' : 'Release'),
+            '',
             await this.buildCCRules(opts),
             await this.buildCXXRules(opts),
             await this.buildASMRules(opts),
@@ -784,7 +782,8 @@ export class LLVM implements IToolchain {
         ...this.includedirs.map((x) => `-I${quote(x)}`),
         ...this.cflags,
         ...this.cxflags,
-      ].join(' ') + (opts.debug ? ' -O0 -g' : ` ${this.optimizeCode}`);
+      ].join(' ') +
+      (opts.debug ? ' -DDEBUG -O0 -g' : ` -DNDEBUG ${this.optimizeCode}`);
     return [
       `rule _CC`,
       '  depfile = $out.d',
@@ -819,7 +818,8 @@ export class LLVM implements IToolchain {
         ...this.includedirs.map((x) => `-I${quote(x)}`),
         ...this.cxxflags,
         ...this.cxflags,
-      ].join(' ') + (opts.debug ? ' -O0 -g' : ` ${this.optimizeCode}`);
+      ].join(' ') +
+      (opts.debug ? ' -DDEBUG -O0 -g' : ` -DNDEBUG ${this.optimizeCode}`);
 
     return [
       `rule _CXX`,
@@ -837,7 +837,8 @@ export class LLVM implements IToolchain {
         ...this.includedirs.map((x) => `-I${quote(x)}`),
         ...this.asmflags,
         ...this.cxflags,
-      ].join(' ') + (opts.debug ? ' -O0 -g' : ` ${this.optimizeCode}`);
+      ].join(' ') +
+      (opts.debug ? ' -DDEBUG -O0 -g' : ` -DNDEBUG ${this.optimizeCode}`);
     return [
       `rule _ASM`,
       '  depfile = $out.d',
@@ -959,10 +960,14 @@ export class LLVM implements IToolchain {
 
   async clean() {
     if (pathExists(this.ninjaFilePath)) {
+      const lines = readFileSync(this.ninjaFilePath).toString().split('\n');
+      this.debug = lines[0].trim() === '# Debug';
       console.log(yellow(`rm: ${this.ninjaFilePath}`));
       rmSync(this.ninjaFilePath, {
         force: true,
       });
+    } else {
+      return;
     }
     if (pathExists(this.outputPath)) {
       console.log(yellow(`rm: ${this.outputPath}`));
