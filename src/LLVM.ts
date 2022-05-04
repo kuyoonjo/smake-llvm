@@ -808,7 +808,7 @@ export class LLVM implements IToolchain {
       return [
         `rule _CXX`,
         '  deps = msvc',
-        `  command = ${compiler} ${flags} -std:${this.stdc} /Fo$out -c -- $in`,
+        `  command = ${compiler} ${flags} -std:${this.stdcxx} /Fo$out -c -- $in`,
       ].join('\n');
     }
     compiler += ` -target ${this.target}${this.targetPlatformVersion}`;
