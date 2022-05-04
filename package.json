@@ -1,5 +1,5 @@
 {
-  "name": "@smake/utils",
+  "name": "@smake/llvm",
   "version": "1.0.0",
   "description": "Typescript Module Template",
   "license": "MIT",
