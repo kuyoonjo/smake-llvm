@@ -22,9 +22,6 @@
   ],
   "main": "lib/index",
   "types": "lib/index",
-  "bin": {
-    "smake": "./lib/bin.js"
-  },
   "scripts": {
     "clean": "rimraf lib && rimraf coverage",
     "format": "prettier --write \"{src,__tests__}/**/*.ts\" --single-quote --trailing-comma es5",
@@ -42,7 +39,7 @@
     "node": ">=12.0.0"
   },
   "dependencies": {
-    "@smake/utils": "^1.0.0",
+    "@smake/utils": "^1.0.1",
     "colors": "^1.4.0"
   }
 }
