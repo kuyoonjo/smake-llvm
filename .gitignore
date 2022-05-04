@@ -7,7 +7,7 @@
 /lib
 /lib_test
 .smake
-/.ninja_log
+/.ninja_*
 /.cache
 /compile_commands.json
 /.vscode

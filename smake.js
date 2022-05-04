@@ -2,8 +2,8 @@ const { magenta, yellow } = require('colors/safe');
 const { Toolchain } = require('./lib');
 
 const builds = [
-  // ...require('./examples/buildDarwin'),
-  // ...require('./examples/buildLinux'),
+  ...require('./examples/buildDarwin'),
+  ...require('./examples/buildLinux'),
   ...require('./examples/buildWin32'),
 ];
 
@@ -37,12 +37,12 @@ class Test {
               label: magenta(`Test ${x.name} ${x.target}`),
               command: ['linux', ['armv7', x.outputPath]],
             };
-          // case 'x86_64-pc-windows-msvc':
-          // case 'i386-pc-windows-msvc':
-          //   return {
-          //     label: magenta(`Test ${x.name} ${x.target}`),
-          //     cmd: `wine ${x.outputPath}`,
-          //   };
+          case 'x86_64-pc-windows-msvc':
+          case 'i386-pc-windows-msvc':
+            return {
+              label: magenta(`Test ${x.name} ${x.target}`),
+              command: ['wine', [x.outputPath]],
+            };
           default:
             return {
               label:  yellow(`Skip Test ${x.name} ${x.target}`),
@@ -55,5 +55,5 @@ class Test {
 
 module.exports = [
   ...builds,
-  // new Test('my-test'),
+  new Test('my-test'),
 ];

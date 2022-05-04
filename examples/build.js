@@ -10,7 +10,7 @@ module.exports = function (target) {
 
   const static_executable = new LLVM('static_executable', target);
   static_executable.files = ['examples/src/libmain.cpp'];
-  static_executable.libs = [static];
+  static_executable.libs.push(static);
 
   const shared = new LLVM('shared', target);
   shared.type = 'shared';
@@ -18,7 +18,7 @@ module.exports = function (target) {
 
   const shared_executable = new LLVM('shared_executable', target);
   shared_executable.files = ['examples/src/dllmain.cpp'];
-  shared_executable.libs = [shared];
+  shared_executable.libs.push(shared);
 
   return [
     executable,
