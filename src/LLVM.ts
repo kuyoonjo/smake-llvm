@@ -374,14 +374,14 @@ export class LLVM implements IToolchain {
         ];
       } else if (this.target.includes('wasm')) {
         this._cxflags = [
-          `--sysroot ${this.sysroot}`,
+          `--sysroot ${quote(this.sysroot)}`,
           '-Qunused-arguments',
           '-Wl,--no-entry',
           '-Wl,--export-all',
         ];
         if (this.type === 'shared') this._cxflags.push('-fPIC');
       } else {
-        this._cxflags = [`--sysroot ${this.sysroot}`, '-Qunused-arguments'];
+        this._cxflags = [`--sysroot ${quote(this.sysroot)}`, '-Qunused-arguments'];
         if (this.type === 'shared') this._cxflags.push('-fPIC');
       }
     }
@@ -402,7 +402,7 @@ export class LLVM implements IToolchain {
         this._ldflags = [];
       } else if (this.target.includes('wasm')) {
         this._ldflags = [
-          `--sysroot ${this.sysroot}`,
+          `--sysroot ${quote(this.sysroot)}`,
           '-fuse-ld=lld',
           `-target ${this.target}${this.targetPlatformVersion}`,
           '-Wl,--no-entry',
@@ -411,7 +411,7 @@ export class LLVM implements IToolchain {
         ];
       } else {
         this._ldflags = [
-          `--sysroot ${this.sysroot}`,
+          `--sysroot ${quote(this.sysroot)}`,
           '-fuse-ld=lld',
           `-target ${this.target}${this.targetPlatformVersion}`,
         ];
@@ -439,7 +439,7 @@ export class LLVM implements IToolchain {
         this._shflags = ['/DLL'];
       } else if (this.target.includes('wasm')) {
         this._shflags = [
-          `--sysroot ${this.sysroot}`,
+          `--sysroot ${quote(this.sysroot)}`,
           '-fuse-ld=lld',
           `-target ${this.target}${this.targetPlatformVersion}`,
           '-fPIC',
@@ -450,7 +450,7 @@ export class LLVM implements IToolchain {
         ];
       } else {
         this._shflags = [
-          `--sysroot ${this.sysroot}`,
+          `--sysroot ${quote(this.sysroot)}`,
           '-fuse-ld=lld',
           `-target ${this.target}${this.targetPlatformVersion}`,
           '-fPIC',
