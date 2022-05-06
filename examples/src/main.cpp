@@ -1,8 +1,11 @@
 #include <iostream>
+#include <stdexcept>
 
 int main() {
-    int a = 0;
-    int b = 1;
-    std::cout << "Hello, world!\n" << "sizeof(size_t) == " << sizeof(size_t) << "\n";
+  try {
+    std::cout << "Hello, world!\n"
+              << "sizeof(size_t) == " << sizeof(size_t) << "\n";
+  } catch (std::runtime_error &re) {
+    std::cout << re.what() << std::endl;
+  }
 }
-
