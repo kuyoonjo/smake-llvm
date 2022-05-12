@@ -1,7 +1,7 @@
 {
   "name": "@smake/llvm",
-  "version": "1.0.3",
-  "description": "Typescript Module Template",
+  "version": "1.0.4",
+  "description": "smake LLVM toolchain",
   "license": "MIT",
   "repository": "",
   "author": {
