@@ -1,9 +1,11 @@
 const { magenta, yellow } = require('colors/safe');
 
 const builds = [
-  ...require('./examples/buildDarwin'),
+  // ...require('./examples/buildDarwin'),
   ...require('./examples/buildLinux'),
   ...require('./examples/buildWin32'),
+  ...require('./examples/buildZigLinux'),
+  // ...require('./examples/buildZigWindowsGnu'),
 ];
 
 class Test {
@@ -44,8 +46,59 @@ class Test {
             };
           default:
             return {
-              label:  yellow(`Skip Test ${x.name} ${x.target}`),
-              command: async() => {},
+              label: yellow(`Skip Test ${x.name} ${x.target}`),
+              command: async () => { },
+            };
+        }
+      });
+  }
+}
+
+class TestZig {
+  async generateCommands(_first, _last) {
+    return builds.filter(x => x.type === 'executable')
+      .map(x => {
+        switch (x.target) {
+          // case 'arm64-apple-darwin':
+          //   return {
+          //     label: magenta(`Test ${x.name} ${x.target}`),
+          //     command: ['arch', ['-arm64', x.outputPath]],
+          //   };
+          // case 'x86_64-apple-darwin':
+          //   return {
+          //     label: magenta(`Test ${x.name} ${x.target}`),
+          //     command: ['arch', ['-x86_64', x.outputPath]],
+          //   };
+          case 'aarch64-linux-gnu':
+            return {
+              label: magenta(`Test ${x.name} ${x.target}`),
+              command: ['armv8', [x.outputPath]],
+            };
+          case 'x86_64-linux-gnu':
+            return {
+              label: magenta(`Test ${x.name} ${x.target}`),
+              command: ['x64', [x.outputPath]],
+            };
+          case 'i386-linux-gnu':
+            return {
+              label: magenta(`Test ${x.name} ${x.target}`),
+              command: ['x86', [x.outputPath]],
+            };
+          case 'arm-linux-gnueabihf':
+            return {
+              label: magenta(`Test ${x.name} ${x.target}`),
+              command: ['armv7', [x.outputPath]],
+            };
+          case 'x86_64-pc-windows-msvc':
+          case 'i686-pc-windows-msvc':
+            return {
+              label: magenta(`Test ${x.name} ${x.target}`),
+              command: ['wine', [x.outputPath]],
+            };
+          default:
+            return {
+              label: yellow(`Skip Test ${x.name} ${x.target}`),
+              command: async () => { },
             };
         }
       });
@@ -54,5 +107,5 @@ class Test {
 
 module.exports = [
   ...builds,
-  new Test('my-test'),
+  new TestZig('my-test-zig'),
 ];
