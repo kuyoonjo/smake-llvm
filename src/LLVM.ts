@@ -66,7 +66,7 @@ export class LLVM implements IToolchain {
           this.throwError();
         }
       }
-    } else if (this.target.includes('apple')) {
+    } else if (this.target.includes('apple') || this.target.includes('macos')) {
       if (useZigcc) return;
       if (process.platform !== 'darwin') this.throwError();
     } else {
@@ -166,7 +166,9 @@ export class LLVM implements IToolchain {
   protected _prefix!: string;
   get prefix() {
     if (this._prefix === undefined) {
-      if (this.target.includes('apple')) this._prefix = '';
+      if (this.target.includes('windows-msvc')) this._prefix = process.env.SMAKE_LLVM_PREFIX || '';
+      else if (this.useZigcc) this._prefix = process.env.SMAKE_ZIG_PREFIX || '';
+      else if (this.target.includes('apple') || this.target.includes('macos')) this._prefix = '';
       else this._prefix = process.env.SMAKE_LLVM_PREFIX || '';
     }
     return this._prefix;
@@ -242,7 +244,9 @@ export class LLVM implements IToolchain {
   protected _ar!: string;
   get ar() {
     if (this._ar === undefined) {
-      if (this.target.includes('apple')) this._ar = 'ar';
+      if (this.target.includes('windows-msvc')) this._ar = 'llvm-ar';
+      else if (this.useZigcc) this._ar = 'zig ar';
+      else if (this.target.includes('apple') || this.target.includes('macos')) this._ar = 'ar';
       else this._ar = 'llvm-ar';
     }
     return this._ar;
@@ -364,7 +368,7 @@ export class LLVM implements IToolchain {
   protected _cxflags!: string[];
   get cxflags() {
     if (this._cxflags === undefined) {
-      if (this.target.includes('apple')) {
+      if (this.target.includes('apple') || this.target.includes('macos')) {
         this._cxflags = ['-Qunused-arguments'];
         if (this.type === 'shared') this._cxflags.push('-fPIC');
       } else if (this.target.includes('windows-msvc')) {
@@ -401,7 +405,7 @@ export class LLVM implements IToolchain {
   protected _ldflags!: string[];
   get ldflags() {
     if (this._ldflags === undefined) {
-      if (this.target.includes('apple')) {
+      if (this.target.includes('apple') || this.target.includes('macos')) {
         this._ldflags = [`-target ${this.target}${this.targetPlatformVersion}`];
         if (this.libs.length)
           this._ldflags.push('-Xlinker -rpath -Xlinker @loader_path');
@@ -434,7 +438,7 @@ export class LLVM implements IToolchain {
   protected _shflags!: string[];
   get shflags() {
     if (this._shflags === undefined) {
-      if (this.target.includes('apple')) {
+      if (this.target.includes('apple') || this.target.includes('macos')) {
         this._shflags = [
           `-target ${this.target}${this.targetPlatformVersion}`,
           '-fPIC',
@@ -453,7 +457,7 @@ export class LLVM implements IToolchain {
           '-Wl,--export-all',
           '-nostdlib',
         ];
-        if(!this.useZigcc)
+        if (!this.useZigcc)
           this._shflags.push(`--sysroot ${quote(this.sysroot)} -fuse-ld=lld`);
       } else {
         this._shflags = [
@@ -461,7 +465,7 @@ export class LLVM implements IToolchain {
           '-fPIC',
           '-shared',
         ];
-        if(!this.useZigcc)
+        if (!this.useZigcc)
           this._shflags.push(`--sysroot ${quote(this.sysroot)} -fuse-ld=lld`);
       }
     }
@@ -551,7 +555,7 @@ export class LLVM implements IToolchain {
   protected _sharedOutSuffix!: string;
   get sharedOutSuffix() {
     if (this._sharedOutSuffix === undefined) {
-      if (this.target.includes('apple')) {
+      if (this.target.includes('apple') || this.target.includes('macos')) {
         this._sharedOutSuffix = '.dylib';
       } else if (this.target.includes('windows')) {
         this._sharedOutSuffix = '.dll';

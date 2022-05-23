@@ -2,8 +2,9 @@ const { magenta, yellow } = require('colors/safe');
 
 const builds = [
   // ...require('./examples/buildDarwin'),
-  ...require('./examples/buildLinux'),
+  // ...require('./examples/buildLinux'),
   ...require('./examples/buildWin32'),
+  ...require('./examples/buildZigDarwin'),
   ...require('./examples/buildZigLinux'),
   // ...require('./examples/buildZigWindowsGnu'),
 ];
@@ -59,35 +60,38 @@ class TestZig {
     return builds.filter(x => x.type === 'executable')
       .map(x => {
         switch (x.target) {
-          // case 'arm64-apple-darwin':
-          //   return {
-          //     label: magenta(`Test ${x.name} ${x.target}`),
-          //     command: ['arch', ['-arm64', x.outputPath]],
-          //   };
-          // case 'x86_64-apple-darwin':
-          //   return {
-          //     label: magenta(`Test ${x.name} ${x.target}`),
-          //     command: ['arch', ['-x86_64', x.outputPath]],
-          //   };
+          case 'arm64-apple-darwin':
+            return {
+              label: magenta(`Test ${x.name} ${x.target}`),
+              command: ['arch', ['-arm64', x.outputPath]],
+            };
+          case 'x86_64-apple-darwin':
+            return {
+              label: magenta(`Test ${x.name} ${x.target}`),
+              command: ['arch', ['-x86_64', x.outputPath]],
+            };
           case 'aarch64-linux-gnu':
             return {
               label: magenta(`Test ${x.name} ${x.target}`),
-              command: ['armv8', [x.outputPath]],
+              command: ['linux', ['arm64', x.outputPath]],
+              // command: ['armv8', [x.outputPath]],
             };
           case 'x86_64-linux-gnu':
             return {
               label: magenta(`Test ${x.name} ${x.target}`),
-              command: ['x64', [x.outputPath]],
+              command: ['linux', ['amd64', x.outputPath]],
+              // command: ['x64', [x.outputPath]],
             };
-          case 'i386-linux-gnu':
-            return {
-              label: magenta(`Test ${x.name} ${x.target}`),
-              command: ['x86', [x.outputPath]],
-            };
+          // case 'i386-linux-gnu':
+          //   return {
+          //     label: magenta(`Test ${x.name} ${x.target}`),
+          //     command: ['x86', [x.outputPath]],
+          //   };
           case 'arm-linux-gnueabihf':
             return {
               label: magenta(`Test ${x.name} ${x.target}`),
-              command: ['armv7', [x.outputPath]],
+              command: ['linux', ['armv7', x.outputPath]],
+              // command: ['armv7', [x.outputPath]],
             };
           case 'x86_64-pc-windows-msvc':
           case 'i686-pc-windows-msvc':
