@@ -78,7 +78,13 @@ export class LLVM implements IToolchain {
       if (dir && dirExists(dir)) {
         this.sysroot = dir;
       } else {
-        const dir = join(sysrootsDir, this.target);
+        const dir = (() => {
+          if (this.target.includes('android'))
+            return join(sysrootsDir, 'ndk');
+          if (this.target.includes('wasi'))
+            return join(sysrootsDir, 'wasi');
+          return join(sysrootsDir, this.target);
+        })();
         if (dirExists(dir)) {
           this.sysroot = dir;
         } else {
