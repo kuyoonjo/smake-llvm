@@ -20,11 +20,30 @@ module.exports = function (target) {
   shared_executable.files = ['examples/src/dllmain.cpp'];
   shared_executable.libs.push(shared);
 
-  return [
+  const builds = [
     executable,
     static,
     static_executable,
     shared,
     shared_executable,
   ];
+
+  if (target.includes('darwin')) {
+    const objc = new LLVM('objc', target);
+    objc.files = ['examples/src/main.m'];
+    objc.ldflags = [
+      ...objc.ldflags,
+      '-fobjc-arc -framework Foundation',
+    ];
+    builds.push(objc);
+    const objcpp = new LLVM('objcpp', target);
+    objcpp.files = ['examples/src/main.mm'];
+    objcpp.ldflags = [
+      ...objcpp.ldflags,
+      '-fobjc-arc -framework Foundation',
+    ];
+    builds.push(objcpp);
+  }
+
+  return builds;
 }

@@ -678,8 +678,8 @@ export class LLVM implements IToolchain {
 
   compdbFilePath = 'compile_commands.json';
 
-  cFileExts = ['.c'];
-  cxxFileExts = ['.cc', '.cpp', '.cxx', '.C'];
+  cFileExts = ['.c', '.m'];
+  cxxFileExts = ['.cc', '.cpp', '.cxx', '.C', '.mm'];
   asmFileExts = ['.s', '.S', '.asm'];
 
   isCFile(f: string) {
