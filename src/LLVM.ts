@@ -134,6 +134,17 @@ export class LLVM implements IToolchain {
     this._optimizeCode = v;
   }
 
+  protected _asmOptimizeCode!: string;
+  get asmOptimizeCode() {
+    if (this._asmOptimizeCode === undefined) {
+      this._asmOptimizeCode = '-O3';
+    }
+    return this._asmOptimizeCode;
+  }
+  set asmOptimizeCode(v) {
+    this._asmOptimizeCode = v;
+  }
+
   protected _files!: string[];
   get files() {
     if (this._files === undefined) this._files = [];
@@ -855,7 +866,7 @@ export class LLVM implements IToolchain {
         ...this.asmflags,
         ...this.cxflags,
       ].join(' ') +
-      (opts.debug ? ' -DDEBUG -O0 -g' : ` -DNDEBUG ${this.optimizeCode}`);
+      (opts.debug ? ' -DDEBUG -O0 -g' : ` -DNDEBUG ${this.asmOptimizeCode}`);
     return [
       `rule _ASM`,
       '  depfile = $out.d',
@@ -881,7 +892,7 @@ export class LLVM implements IToolchain {
 
   async buildExecutable(opts: any, objFiles: string[], distFile: string) {
     const linker = this.prefix + this.ld;
-    if (this.target.includes('windows-msvc'))
+    if (this.ld === 'lld-link')
       return [
         `rule _LD`,
         `  command = ${[
@@ -920,7 +931,7 @@ export class LLVM implements IToolchain {
 
   async buildShared(opts: any, objFiles: string[], distFile: string) {
     const linker = this.prefix + this.sh;
-    if (this.target.includes('windows-msvc'))
+    if (this.sh === 'lld-link')
       return [
         `rule _SH`,
         `  command = ${[
