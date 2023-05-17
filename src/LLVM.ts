@@ -427,7 +427,13 @@ export class LLVM implements IToolchain {
         if (this.libs.length)
           this._ldflags.push('-Xlinker -rpath -Xlinker @loader_path');
       } else if (this.target.includes('windows-msvc')) {
-        this._ldflags = [];
+        if (this.ld === 'lld-link')
+          this._ldflags = [];
+        else
+          this._ldflags = [
+            '-fuse-ld=lld',
+            `-target ${this.target}${this.targetPlatformVersion}`,
+          ]
       } else if (this.target.includes('wasm')) {
         this._ldflags = [
           `-target ${this.target}${this.targetPlatformVersion}`,
@@ -464,7 +470,14 @@ export class LLVM implements IToolchain {
         if (this.libs.length)
           this._shflags.push('-Xlinker -rpath -Xlinker @loader_path');
       } else if (this.target.includes('windows-msvc')) {
-        this._shflags = ['/DLL'];
+        if (this.sh === 'lld-link')
+          this._shflags = ['/DLL'];
+        else
+          this._shflags = [
+            '-shared',
+            '-fuse-ld=lld',
+            `-target ${this.target}${this.targetPlatformVersion}`,
+          ];
       } else if (this.target.includes('wasm')) {
         this._shflags = [
           `-target ${this.target}${this.targetPlatformVersion}`,
