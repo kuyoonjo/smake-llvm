@@ -890,7 +890,8 @@ export class LLVM implements IToolchain {
   async buildObjs() {
     const outDir = join(this.buildDir, this.cacheDirname, this.objOutDirname);
 
-    const res = this.files.map((f) => {
+    const files = Array.from(new Set(this.files));
+    const res = files.map((f) => {
       const out = join(outDir, f.replace(/\.\./g, '_') + this.objOutSuffix);
       return {
         cmd: `build ${out}: _${this.isCXXFile(f) ? 'CXX' : this.isASMFile(f) ? 'ASM' : 'CC'
