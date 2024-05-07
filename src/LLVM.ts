@@ -134,6 +134,18 @@ export class LLVM implements IToolchain {
     this._optimizeCode = v;
   }
 
+  protected _optimizeCodeDebug!: string;
+  get optimizeCodeDebug() {
+    if (this._optimizeCodeDebug === undefined) {
+      if (this.cc === 'clang-cl') this._optimizeCodeDebug = '/Zi /Ob0 /Od /RTC1';
+      else this._optimizeCodeDebug = '-O0';
+    }
+    return this._optimizeCodeDebug;
+  }
+  set optimizeCodeDebug(v) {
+    this._optimizeCodeDebug = v;
+  }
+
   protected _asmOptimizeCode!: string;
   get asmOptimizeCode() {
     if (this._asmOptimizeCode === undefined) {
@@ -808,7 +820,7 @@ export class LLVM implements IToolchain {
           ...this.cxflags,
         ].join(' ') +
         (opts.debug
-          ? ` /Zi /Ob0 /Od /RTC1 -${this.msvcCRT}d /DDEBUG`
+          ? ` /Zi ${this.optimizeCodeDebug} /Od /RTC1 -${this.msvcCRT}d /DDEBUG`
           : ` -${this.msvcCRT} ${this.optimizeCode} /DNDEBUG`);
       return [
         `rule _CC`,
@@ -824,7 +836,7 @@ export class LLVM implements IToolchain {
         ...this.cflags,
         ...this.cxflags,
       ].join(' ') +
-      (opts.debug ? ' -DDEBUG -O0 -g' : ` -DNDEBUG ${this.optimizeCode}`);
+      (opts.debug ? ` -DDEBUG ${this.optimizeCodeDebug} -g` : ` -DNDEBUG ${this.optimizeCode}`);
     return [
       `rule _CC`,
       '  depfile = $out.d',
@@ -844,7 +856,7 @@ export class LLVM implements IToolchain {
           ...this.cxflags,
         ].join(' ') +
         (opts.debug
-          ? ` /Zi /Ob0 /Od /RTC1 -${this.msvcCRT}d /DDEBUG`
+          ? ` /Zi ${this.optimizeCodeDebug} /Od /RTC1 -${this.msvcCRT}d /DDEBUG`
           : ` -${this.msvcCRT} ${this.optimizeCode}  /DNDEBUG`);
       return [
         `rule _CXX`,
@@ -860,7 +872,7 @@ export class LLVM implements IToolchain {
         ...this.cxxflags,
         ...this.cxflags,
       ].join(' ') +
-      (opts.debug ? ' -DDEBUG -O0 -g' : ` -DNDEBUG ${this.optimizeCode}`);
+      (opts.debug ? ` -DDEBUG ${this.optimizeCodeDebug} -g` : ` -DNDEBUG ${this.optimizeCode}`);
 
     return [
       `rule _CXX`,
@@ -879,7 +891,7 @@ export class LLVM implements IToolchain {
         ...this.asmflags,
         ...this.cxflags,
       ].join(' ') +
-      (opts.debug ? ' -DDEBUG -O0 -g' : ` -DNDEBUG ${this.asmOptimizeCode}`);
+      (opts.debug ? ` -DDEBUG ${this.optimizeCodeDebug} -g` : ` -DNDEBUG ${this.asmOptimizeCode}`);
     return [
       `rule _ASM`,
       '  depfile = $out.d',
