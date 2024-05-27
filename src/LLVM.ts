@@ -30,13 +30,13 @@ function pathExists(p: string) {
   }
 }
 
-function getLLVMOutputDir(llvm: LLVM, debug: boolean) {
-  const _debug = llvm['debug'];
-  llvm['debug'] = debug;
-  const outputDir = llvm.outputDir;
-  llvm['debug'] = _debug;
-  return outputDir;
-}
+// function getLLVMOutputDir(llvm: LLVM, debug: boolean) {
+//   const _debug = llvm['debug'];
+//   llvm['debug'] = debug;
+//   const outputDir = llvm.outputDir;
+//   llvm['debug'] = _debug;
+//   return outputDir;
+// }
 
 export class LLVM implements IToolchain {
   id: string;
@@ -681,7 +681,7 @@ export class LLVM implements IToolchain {
     this._outputFilename = v;
   }
 
-  private debug = false;
+  public debug = !!process.env.DEBUG;
 
   protected _outputDir!: string;
   get outputDir() {
@@ -745,7 +745,6 @@ export class LLVM implements IToolchain {
       {
         label: magenta(`Generating build.ninja for ${this.id}`),
         command: async (opts: any) => {
-          this.debug = opts.debug;
           const { cmd, outs } = await this.buildObjs();
           const content = [
             '# ' + (this.debug ? 'Debug' : 'Release'),
@@ -926,7 +925,7 @@ export class LLVM implements IToolchain {
           ...this.linkdirs.map((x) => `/libpath:${quote(x)}`),
           ...this.libs
             .filter((x) => x instanceof LLVM)
-            .map((x: any) => `/libpath:${quote(getLLVMOutputDir(x, this.debug))}`),
+            .map((x: any) => `/libpath:${quote(x.outputDir)}`),
           ...this.libs.map(
             (x) => `${typeof x === 'string' ? x : x.outputFileBasename}.lib`
           ),
@@ -943,7 +942,7 @@ export class LLVM implements IToolchain {
         ...this.linkdirs.map((x) => `-L${quote(x)}`),
         ...this.libs
           .filter((x) => x instanceof LLVM)
-          .map((x: any) => `-L${quote(getLLVMOutputDir(x, this.debug))}`),
+          .map((x: any) => `-L${quote(x.outputDir)}`),
         ...this.libs.map(
           (x) => `-l${typeof x === 'string' ? x : x.outputFileBasename}`
         ),
@@ -965,7 +964,7 @@ export class LLVM implements IToolchain {
           ...this.linkdirs.map((x) => `/libpath:${quote(x)}`),
           ...this.libs
             .filter((x) => x instanceof LLVM)
-            .map((x: any) => `/libpath:${quote(getLLVMOutputDir(x, this.debug))}`),
+            .map((x: any) => `/libpath:${quote(x.outputDir)}`),
           ...this.libs.map(
             (x) => `${typeof x === 'string' ? x : x.outputFileBasename}.lib`
           ),
@@ -982,7 +981,7 @@ export class LLVM implements IToolchain {
         ...this.linkdirs.map((x) => `-L${quote(x)}`),
         ...this.libs
           .filter((x) => x instanceof LLVM)
-          .map((x: any) => `-L${quote(getLLVMOutputDir(x, this.debug))}`),
+          .map((x: any) => `-L${quote(x.outputDir)}`),
         ...this.libs.map(
           (x) => `-l${typeof x === 'string' ? x : x.outputFileBasename}`
         ),

@@ -1,6 +1,6 @@
 {
   "name": "@smake/llvm",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "smake LLVM toolchain",
   "license": "MIT",
   "repository": "",
